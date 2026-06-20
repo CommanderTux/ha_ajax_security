@@ -1,4 +1,4 @@
-# Ajax Security via Jeedom Home Assistant Integartion
+# Ajax Security via Jeedom Home Assistant Integration
 
 First HA Integration, that works!
 
