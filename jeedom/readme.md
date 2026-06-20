@@ -1,35 +1,35 @@
 # Jeedom Install
-Plese Install Jeedom + MQTT Manager + Ajax System (8 euro one time, in Jeedom Market, it defenetly costs this money)
+Please install Jeedom + MQTT Manager + Ajax System (8 euro one time in Jeedom Market, and definitely worth it).
 
-# Jeedom COnfiguration
-It's mandatory to apply code path and configure Jeedom, before Home Assistant Integration Configuration! 
+# Jeedom Configuration
+It is mandatory to apply the code patch and configure Jeedom before configuring the Home Assistant integration.
 
 Open Settings
-![image](https://github.com/bob-tm/ha_ajax_security/blob/main/jeedom/system_config.png)
+![image](https://github.com/CommanderTux/ha_ajax_security/blob/main/jeedom/system_config.png)
 
 # External Access
-It is ABSOLUTELY necessary that your Jeedom be accessible from the outside (external access URL used)
+It is ABSOLUTELY necessary that your Jeedom be accessible from the outside (using the external access URL).
 Setup it here. 
-![image](https://github.com/bob-tm/ha_ajax_security/blob/main/jeedom/ext_url.png)
+![image](https://github.com/CommanderTux/ha_ajax_security/blob/main/jeedom/ext_url.png)
 
-I use wireguard tunel (wiregiuard client Addon) from my HA to my server with white IP. MQTT client connects to wireguard IP to push updages to HA MQTT server. Or you can use port translation to open external access to mqtt server behind NAT
+I use a WireGuard tunnel (WireGuard client addon) from my HA to my server with a public IP. The MQTT client connects to the WireGuard IP to push updates to the HA MQTT server. Or you can use port forwarding to open external access to an MQTT server behind NAT.
 
 # Jeedom Path
 
-We need to path Jeedom Code, to acccess all functions in Ajax API. From Jeedom we use only two functions. 
+We need to patch Jeedom code to access all functions in the Ajax API. From Jeedom we use only two functions:
 - ajaxSystem::request to call Ajax API via Jeedom Market gateway
 - redirect events from Ajax API to mqtt, before Jeedom will parse it.
 
-Jeedom used to first login and manage tokens to access Ajax API. It's possible to rewrite ajaxSystem::request localy and do not use Jeedom at all. If you want - you can help, it's not a lot of code, but more about testing :) I see it like small HA addon, that listen public url for Ajax API Events and redirect everything to MQTT 
+Jeedom is used to log in first and manage tokens to access the Ajax API. It is possible to rewrite `ajaxSystem::request` locally and not use Jeedom at all. If you want, you can help with that. It is not a lot of code, but it would need testing. I imagine it as a small HA addon that listens on a public URL for Ajax API events and redirects everything to MQTT.
 
-1. Open build in Code Editor
-![image](https://github.com/bob-tm/ha_ajax_security/blob/main/jeedom/editor.png)
+1. Open the built-in Code Editor
+![image](https://github.com/CommanderTux/ha_ajax_security/blob/main/jeedom/editor.png)
 
 2. Locate File /plugins/ajaxSystem/core/php/jeeAjaxSystem.php
-![image](https://github.com/bob-tm/ha_ajax_security/blob/main/jeedom/ajaxphp.png) 
+![image](https://github.com/CommanderTux/ha_ajax_security/blob/main/jeedom/ajaxphp.png)
 
-3. Copy Paste selected code and save. Just after Log::Add
-![image](https://github.com/bob-tm/ha_ajax_security/blob/main/jeedom/path.png)
+3. Copy and paste the selected code and save it just after `Log::Add`
+![image](https://github.com/CommanderTux/ha_ajax_security/blob/main/jeedom/path.png)
 
 ```php
 if (class_exists('mqtt2', true)) {
@@ -68,19 +68,19 @@ if (class_exists('mqtt2', true)) {
 ```
 
 # Ajax API Key
-To Setup Home Assistant Integartion you need:
+To set up the Home Assistant integration you need:
 - External Access URL
 - This Ajax API key
  
 
-![image](https://github.com/bob-tm/ha_ajax_security/blob/main/jeedom/ajax_api.png)
+![image](https://github.com/CommanderTux/ha_ajax_security/blob/main/jeedom/ajax_api.png)
 
 # Updates
 It's better to disable everything
-![image](https://github.com/bob-tm/ha_ajax_security/blob/main/jeedom/updates1.png)
+![image](https://github.com/CommanderTux/ha_ajax_security/blob/main/jeedom/updates1.png)
 
 And for plugin
-![image](https://github.com/bob-tm/ha_ajax_security/blob/main/jeedom/updates2.png)
+![image](https://github.com/CommanderTux/ha_ajax_security/blob/main/jeedom/updates2.png)
 
 
 
