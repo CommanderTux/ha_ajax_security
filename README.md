@@ -2,8 +2,6 @@
 
 First HA Integration, that works!
 
-![image](https://github.com/bob-tm/ha_ajax_security/blob/main/ui/card.jpg)
-
 Technically it uses Ajax API via Jeedom cloud. Jeedom works like a proxy. All commands and events exactly like in Ajax API documentation. This integartion call API and parse events independetly of Jeedom Ajax Plugin. It's provide more features and works much better.
 
 # REQUIREMENTS
@@ -28,28 +26,26 @@ Technically it uses Ajax API via Jeedom cloud. Jeedom works like a proxy. All co
 - Sensors with Real time updates for Door sensors, Temperature, PowerFailure, Battery charge, Online, GSM INfo, Masking, Relay voltage, and more..
 - Relays, Sockets
 - Relatime Events
-- My [HA User Interface Card](https://github.com/bob-tm/ha_ajax_security/blob/main/ui/readme.md)
 - Testing it limited to my equipment. Feedback is welcome!
   
 # Installation
 1. Install Jeedom + MQTT Manager + Ajax System Plugin.
 2. Configure Ajax in Jeedom, Configure Mqtt in Jeedom to access mqtt server, that HA uses
 3. It's not required to check "Transmit all equipment" in mqtt manager settings. Itegration do not use this information 
-4. [Configure Jeedom by this Manual](https://github.com/bob-tm/ha_ajax_security/blob/main/jeedom/readme.md)
+4. [Configure Jeedom by this Manual](jeedom/readme.md)
 5. Install this integration using HACS
 6. Configure access with information from step 4.
-7. [Configure UI Card by this Manual](https://github.com/bob-tm/ha_ajax_security/blob/main/ui/readme.md)
 
    
 ## HACS Installation
 
 1. Go to http://homeassistant.local:8123/hacs/integrations
-1. Add `https://github.com/bob-tm/ha_ajax_security` custom integration repository
+1. Add `https://github.com/CommanderTux/ha_ajax_security` custom integration repository
 1. Go to http://homeassistant.local:8123/config/integrations and add new integration
 1. Choose "Ajax Security via Jeedom" from the list and follow the config flow steps
 3. Check checkbox to Enable Panic Button calls. Without checkbox calls will raise internals exception. Better to disable it while testing.
 
 # Extending Manual
-[How to add unsupported devices](https://github.com/bob-tm/ha_ajax_security/blob/main/extending.md)
+[How to add unsupported devices](extending.md)
 
 
