@@ -3,6 +3,7 @@
     "hacs": "0.2",
     "render_readme": true,
     "domains": [
+        "alarm_control_panel",
         "sensor",
         "binary_sensor",
         "switch",
