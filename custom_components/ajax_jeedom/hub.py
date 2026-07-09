@@ -896,6 +896,7 @@ class AjaxDevice:
 
         # everything else
         if self.update_sensor_value(sensor_name, u):
+            self.clear_pending_arm_command(sensor_name)
             await self.publish_updates(sensor_name)
         else:
             t = f"Unparsed PARAM: {self.devicetype}: {self.name}:{u['name']} => {u['state']} | {u['type']}"

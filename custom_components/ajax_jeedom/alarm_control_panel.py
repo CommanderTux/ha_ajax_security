@@ -113,7 +113,9 @@ class AjaxAlarmControlPanel(AlarmControlPanelEntity):
             "ArmedWithErrors": AlarmControlPanelState.ARMED_AWAY,
             "Disarmed": AlarmControlPanelState.DISARMED,
             "PartiallyArmed": AlarmControlPanelState.ARMED_HOME,
-            "ArmAttempt": AlarmControlPanelState.ARMING,
+            # Ajax uses ArmAttempt for a failed arm action, e.g. an open door.
+            # Once the in-flight command is cleared, expose the stable not-armed state.
+            "ArmAttempt": AlarmControlPanelState.DISARMED,
         }
         return mapping.get(raw_state)
 
