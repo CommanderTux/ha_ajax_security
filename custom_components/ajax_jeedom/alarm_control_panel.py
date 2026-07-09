@@ -46,7 +46,7 @@ class AjaxAlarmControlPanel(AlarmControlPanelEntity):
 
         if is_hub:
             self._state_sensor_name = "hub_state"
-            self._extra_state_sensors = ("night_mode_armed",)
+            self._extra_state_sensors = ("night_mode_armed", "night_mode_state")
             self._attr_name = ajax_device.name
             self._attr_supported_features = (
                 AlarmControlPanelEntityFeature.ARM_AWAY
@@ -92,6 +92,17 @@ class AjaxAlarmControlPanel(AlarmControlPanelEntity):
     def alarm_state(self) -> AlarmControlPanelState | None:
         """Return the current Home Assistant alarm state."""
         raw_state = self._ad.get_sensor_value(self._state_sensor_name)
+        pending_command = self._ad.last_arm_cmd
+
+        if pending_command and pending_command["state_sensor"] in (
+            self._state_sensor_name,
+            *self._extra_state_sensors,
+        ):
+            command = pending_command.get("command")
+            if command in {"ARM", "FORCE ARM", "NIGHT_MODE_ON", "FORCE_NIGHT_MODE_ON"}:
+                return AlarmControlPanelState.ARMING
+            if command in {"DISARM", "NIGHT_MODE_OFF"}:
+                return AlarmControlPanelState.DISARMING
 
         if self._is_hub and self._ad.get_sensor_value("night_mode_armed"):
             if raw_state == "Disarmed":
@@ -103,7 +114,6 @@ class AjaxAlarmControlPanel(AlarmControlPanelEntity):
             "Disarmed": AlarmControlPanelState.DISARMED,
             "PartiallyArmed": AlarmControlPanelState.ARMED_HOME,
             "ArmAttempt": AlarmControlPanelState.ARMING,
-            "Request": AlarmControlPanelState.PENDING,
         }
         return mapping.get(raw_state)
 

@@ -39,7 +39,6 @@ from .mqtt_raw_event_parser import (
     STATE_ARMED,
     STATE_ARMED_WITH_ERRORS,
     STATE_DISARMED,
-    STATE_EXEC_CMD,
     STATE_HUB_CHECK_GROUPS,
     STATE_HUB_PARTIALLY_ARMED,
     AjaxHubEventSensors,
@@ -783,10 +782,14 @@ class AjaxDevice:
                     )
                     await self.publish_updates("night_mode_state")
 
+                if self.clear_pending_arm_command("night_mode_state"):
+                    await self.publish_updates("night_mode_state")
+
             if hubState:
                 if not self.ha_Hub.enable_apply_hub_state_to_groups:
                     hub = self.parentHub if self.devicetype != "HUB" else self
                     hub.SensorsValues["hub_state"] = hubState
+                    hub.clear_pending_arm_command("hub_state")
                     LOGGER.debug(f"Skip Group update, keep Hub State {hubState}. HUB.state Message")
                     await hub.publish_updates("hub_state")
                     return True
@@ -819,6 +822,7 @@ class AjaxDevice:
             )
             if not skip_update:
                 if self.update_sensor_value("state", u):
+                    self.clear_pending_arm_command("state")
                     LOGGER.debug("Group state Updated")
                     await self.publish_updates("state")
 
@@ -846,6 +850,7 @@ class AjaxDevice:
             if hubState:
                 hub = self.parentHub if self.devicetype != "HUB" else self
                 hub.SensorsValues["hub_state"] = hubState
+                hub.clear_pending_arm_command("hub_state")
                 LOGGER.debug(f"Hub State changed to {hubState}")
                 await hub.publish_updates("hub_state")
 
@@ -858,6 +863,7 @@ class AjaxDevice:
 
                     if "night_mode_state" in hub.SensorsValues:
                         hub.SensorsValues["night_mode_state"] = STATE_DISARMED
+                        hub.clear_pending_arm_command("night_mode_state")
                         await hub.publish_updates("night_mode_state")
 
             if updateGroupsStateFromHubState:
@@ -939,18 +945,27 @@ class AjaxDevice:
 
         return None
 
+    def clear_pending_arm_command(self, *sensor_names) -> bool:
+        """Clear the optimistic arm/disarm tracker after a real update arrives."""
+        if not self.last_arm_cmd:
+            return False
+
+        if sensor_names and self.last_arm_cmd["state_sensor"] not in sensor_names:
+            return False
+
+        self.last_arm_cmd = None
+        return True
+
     async def check_if_request_is_expired(self, *_: datetime) -> None:
         '''Ajax API does not send any return if ARM already Armed group or Hub. Check such case here.'''
         if self.last_arm_cmd:
             state_sensor = self.last_arm_cmd["state_sensor"]
-            if self.SensorsValues[state_sensor] == STATE_EXEC_CMD:
-                prev_state = self.last_arm_cmd["prev_state"]
-                LOGGER.info(
-                    f"No HUB Answer. State for {self.name} returned to {prev_state}"
-                )
-                self.SensorsValues[state_sensor] = prev_state
-                await self.publish_updates(state_sensor)
-                self.last_arm_cmd = None
+            prev_state = self.last_arm_cmd["prev_state"]
+            LOGGER.info(
+                f"No HUB Answer. State for {self.name} returned to {prev_state}"
+            )
+            self.last_arm_cmd = None
+            await self.publish_updates(state_sensor)
 
     async def exec_command(self, cmd_name, context=None) -> None:
         '''Run AJAX Api command.'''
@@ -966,11 +981,11 @@ class AjaxDevice:
             state_sensor = self.get_state_sensor_for_command(cmd)
             if state_sensor:
                 self.last_arm_cmd = {
+                    "command"     : cmd_name,
                     "prev_state"  : self.SensorsValues[state_sensor],
                     "state_sensor": state_sensor,
                 }
 
-                self.SensorsValues[state_sensor] = STATE_EXEC_CMD
                 await self.publish_updates(state_sensor)
 
                 expiration_at = utcnow() + timedelta(seconds=10)
@@ -993,6 +1008,8 @@ class AjaxDevice:
 
             # r can be '', so only == False
             if r == False:
+                if state_sensor and self.clear_pending_arm_command(state_sensor):
+                    await self.publish_updates(state_sensor)
                 LOGGER.error(
                     f"ajax_api.exec_cmd errors: {self.ha_Hub.ajax_api.last_exec_error}"
                 )
